@@ -268,6 +268,106 @@ export const apiHandlers = [
     if (!caseItem) {
       return HttpResponse.json({ error: 'Case not found' }, { status: 404 });
     }
+
+    // Validate request data structure
+    const validationErrors: Record<string, string[]> = {};
+
+    // Check that updateData is an object
+    if (typeof updateData !== 'object' || updateData === null || Array.isArray(updateData)) {
+      return HttpResponse.json({ 
+        detail: 'Invalid request body format' 
+      }, { status: 400 });
+    }
+
+    // Validate individual fields based on backend PersonalDetails schema
+    // All fields are optional for PATCH, but if provided must be correct type/format
+
+    if ('full_name' in updateData) {
+      if (typeof updateData.full_name !== 'string') {
+        validationErrors.full_name = ['Must be a string'];
+      } else if (updateData.full_name.length > 400) {
+        validationErrors.full_name = ['Ensure this field has no more than 400 characters.'];
+      }
+    }
+
+    if ('postcode' in updateData) {
+      if (typeof updateData.postcode !== 'string') {
+        validationErrors.postcode = ['Must be a string'];
+      } else if (updateData.postcode.length > 12) {
+        validationErrors.postcode = ['Ensure this field has no more than 12 characters.'];
+      }
+    }
+
+    if ('street' in updateData) {
+      if (typeof updateData.street !== 'string') {
+        validationErrors.street = ['Must be a string'];
+      } else if (updateData.street.length > 255) {
+        validationErrors.street = ['Ensure this field has no more than 255 characters.'];
+      }
+    }
+
+    if ('mobile_phone' in updateData) {
+      if (typeof updateData.mobile_phone !== 'string') {
+        validationErrors.mobile_phone = ['Must be a string'];
+      } else if (updateData.mobile_phone.length > 20) {
+        validationErrors.mobile_phone = ['Ensure this field has no more than 20 characters.'];
+      }
+    }
+
+    if ('home_phone' in updateData) {
+      if (typeof updateData.home_phone !== 'string') {
+        validationErrors.home_phone = ['Must be a string'];
+      } else if (updateData.home_phone.length > 20) {
+        validationErrors.home_phone = ['Ensure this field has no more than 20 characters.'];
+      }
+    }
+
+    if ('email' in updateData) {
+      if (typeof updateData.email !== 'string') {
+        validationErrors.email = ['Must be a string'];
+      } else if (updateData.email.length > 0) {
+        // Basic email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(updateData.email)) {
+          validationErrors.email = ['Enter a valid email address.'];
+        }
+      }
+    }
+
+    if ('safe_to_contact' in updateData) {
+      if (typeof updateData.safe_to_contact !== 'string') {
+        validationErrors.safe_to_contact = ['Must be a string'];
+      } else {
+        // Validate against CONTACT_SAFETY choices
+        const validChoices = ['SAFE', 'DONT_CALL'];
+        if (!validChoices.includes(updateData.safe_to_contact)) {
+          validationErrors.safe_to_contact = [`Must be one of: ${validChoices.join(', ')}`];
+        }
+      }
+    }
+
+    if ('announce_call' in updateData) {
+      if (typeof updateData.announce_call !== 'boolean' && updateData.announce_call !== null) {
+        validationErrors.announce_call = ['Must be a boolean or null'];
+      }
+    }
+
+    if ('dob' in updateData) {
+      // dob should be an object with day, month, year
+      if (typeof updateData.dob !== 'object' || updateData.dob === null) {
+        validationErrors.dob = ['Must be an object with day, month, year'];
+      } else {
+        const { day, month, year } = updateData.dob;
+        if (!day || !month || !year) {
+          validationErrors.dob = ['Must include day, month, and year'];
+        }
+      }
+    }
+
+    // If there are validation errors, return 400 with error details
+    if (Object.keys(validationErrors).length > 0) {
+      return HttpResponse.json(validationErrors, { status: 400 });
+    }
     
     // Return the case in API format (in real implementation this would update the mock data)
     return HttpResponse.json(transformToApiFormat(caseItem));
