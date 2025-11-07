@@ -147,6 +147,42 @@ test('save button should redirect to client details when valid data submitted', 
   await expect(page).toHaveURL(clientDetailsUrl);
 });
 
+test('invalid phone number rejected by backend should not update client details', async ({ page, i18nSetup }) => {
+  // This test verifies that when MSW rejects invalid phone data (too long),
+  // the client details are NOT updated
+  const phoneInput = page.locator('#phoneNumber');
+  const safeToCallRadios = page.locator('[name="safeToCall"]');
+  const saveButton = page.getByRole('button', { name: t('common.save') });
+  
+  // First, get the original phone from the client details page
+  // Use more specific selector to get client's contact number (first summary list)
+  await page.goto('/cases/PC-1922-1879/client-details');
+  await page.waitForLoadState('networkidle');
+  const clientDetailsSection = page.locator('.govuk-summary-list').first();
+  const phoneRow = clientDetailsSection.locator('.govuk-summary-list__row').filter({ hasText: 'Contact number' });
+  const originalPhone = await phoneRow.locator('.govuk-summary-list__value').textContent();
+  
+  // Navigate to edit phone page
+  await page.goto(visitUrl);
+  
+  // Submit a phone number that's too long (> 20 characters)
+  // MSW will reject this with a 400 error
+  const tooLongPhone = '1'.repeat(21);
+  await phoneInput.fill(tooLongPhone);
+  await safeToCallRadios.first().check();
+  await saveButton.click();
+  
+  // The app currently redirects despite the error
+  await page.waitForURL(/client-details/, { timeout: 5000 });
+  
+  // Verify the phone was NOT updated - should still show original phone
+  const clientDetailsSectionAfter = page.locator('.govuk-summary-list').first();
+  const phoneRowAfter = clientDetailsSectionAfter.locator('.govuk-summary-list__row').filter({ hasText: 'Contact number' });
+  const currentPhone = await phoneRowAfter.locator('.govuk-summary-list__value').textContent();
+  expect(currentPhone).toBe(originalPhone);
+  expect(currentPhone).not.toContain('111111111111111111111'); // Should not contain the rejected long phone
+});
+
 test('phone number edit page should be accessible', {
   tag: '@accessibility',
 }, async ({ page, checkAccessibility }) => {

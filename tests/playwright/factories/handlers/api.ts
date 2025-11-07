@@ -305,9 +305,11 @@ export const apiHandlers = [
     }
 
     if ('street' in updateData) {
+      console.log(`[MSW] Validating street field: length=${updateData.street?.length}, type=${typeof updateData.street}`);
       if (typeof updateData.street !== 'string') {
         validationErrors.street = ['Must be a string'];
       } else if (updateData.street.length > 255) {
+        console.log(`[MSW] Rejecting - street too long: ${updateData.street.length} chars`);
         validationErrors.street = ['Ensure this field has no more than 255 characters.'];
       }
     }
@@ -372,9 +374,11 @@ export const apiHandlers = [
 
     // If there are validation errors, return 400 with error details
     if (Object.keys(validationErrors).length > 0) {
+      console.log(`[MSW] Returning 400 with validation errors:`, validationErrors);
       return HttpResponse.json(validationErrors, { status: 400 });
     }
     
+    console.log(`[MSW] Validation passed, returning 200 with updated case data`);
     // Return the case in API format (in real implementation this would update the mock data)
     return HttpResponse.json(transformToApiFormat(caseItem));
   }),
