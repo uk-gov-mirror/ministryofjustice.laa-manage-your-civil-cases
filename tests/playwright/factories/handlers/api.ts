@@ -263,9 +263,13 @@ export const apiHandlers = [
     const { caseReference } = params;
     const updateData = await request.json() as Record<string, any>;
     
+    console.log(`[MSW] Intercepting PATCH /case/${String(caseReference)}/personal_details/`);
+    console.log(`[MSW] Request data:`, JSON.stringify(updateData, null, 2));
+    
     const caseItem = cases.find(c => c.caseReference === caseReference);
     
     if (!caseItem) {
+      console.log(`[MSW] Case not found: ${String(caseReference)}`);
       return HttpResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
@@ -274,6 +278,7 @@ export const apiHandlers = [
 
     // Check that updateData is an object
     if (typeof updateData !== 'object' || updateData === null || Array.isArray(updateData)) {
+      console.log(`[MSW] Rejecting - invalid request body format`);
       return HttpResponse.json({ 
         detail: 'Invalid request body format' 
       }, { status: 400 });
@@ -286,6 +291,7 @@ export const apiHandlers = [
       if (typeof updateData.full_name !== 'string') {
         validationErrors.full_name = ['Must be a string'];
       } else if (updateData.full_name.length > 400) {
+        console.log(`[MSW] Rejecting - full_name too long: ${updateData.full_name.length} chars`);
         validationErrors.full_name = ['Ensure this field has no more than 400 characters.'];
       }
     }
