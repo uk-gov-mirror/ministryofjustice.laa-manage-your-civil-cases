@@ -13,6 +13,7 @@ import { disputedSavingsStep } from '#packages/financial-eligibility-journey/src
 import { disregardsStep } from '#packages/financial-eligibility-journey/src/disregardsPage/disregardsStep.js';
 import { checkAnswersStep } from '#packages/financial-eligibility-journey/src/checkAnswersPage/checkAnswersStep.js';
 import { propertiesStepPartner } from '#packages/financial-eligibility-journey/src/propertiesPageWithPartner/propertiesStepPartner.js';
+import { undisputedSavingsStep } from '#packages/financial-eligibility-journey/src/undisputedSavings/undisputedSavingsStep.js';
 
 describe('Financial eligibility Forge routing', () => {
   it('routes under-18 answers to the correct next steps', () => {
@@ -105,8 +106,9 @@ describe('Financial eligibility Forge routing', () => {
       .map((outcome) => ('goto' in outcome ? outcome.goto : null))
       .filter((goto): goto is string => goto !== null);
 
-    expect(redirectGoesTo).to.have.length(1);
-    expect(redirectGoesTo[0]).to.equal(savingsStep.code);
+    expect(redirectGoesTo).to.have.length(2);
+    expect(redirectGoesTo[0]).to.equal(undisputedSavingsStep.code);
+    expect(redirectGoesTo[1]).to.equal(savingsStep.code);
   });
 
   it('routes savings answers to the correct next steps', () => {
@@ -116,10 +118,9 @@ describe('Financial eligibility Forge routing', () => {
       .map((outcome) => ('goto' in outcome ? outcome.goto : null))
       .filter((goto): goto is string => goto !== null);
 
-    expect(redirectGoesTo).to.have.length(3);
+    expect(redirectGoesTo).to.have.length(2);
     expect(redirectGoesTo[0]).to.equal(partnerSavingsStep.code);
-    expect(redirectGoesTo[1]).to.equal(disputedSavingsStep.code);
-    expect(redirectGoesTo[2]).to.equal(disregardsStep.code);
+    expect(redirectGoesTo[1]).to.equal(disregardsStep.code);
   });
 
   it('routes partner-savings answers to the correct next steps', () => {
@@ -129,9 +130,8 @@ describe('Financial eligibility Forge routing', () => {
       .map((outcome) => ('goto' in outcome ? outcome.goto : null))
       .filter((goto): goto is string => goto !== null);
 
-    expect(redirectGoesTo).to.have.length(2);
-    expect(redirectGoesTo[0]).to.equal(disputedSavingsStep.code);
-    expect(redirectGoesTo[1]).to.equal(disregardsStep.code);
+    expect(redirectGoesTo).to.have.length(1);
+    expect(redirectGoesTo[0]).to.equal(disregardsStep.code);
   });
 
   it('routes disputed-savings answers to the correct next steps', () => {
