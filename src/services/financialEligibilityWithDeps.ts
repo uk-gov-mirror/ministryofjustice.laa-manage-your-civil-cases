@@ -1,10 +1,50 @@
 import type { EffectFunctionContext } from "@ministryofjustice/hmpps-forge/core";
 import { type FinancialEligibilityEffectsWithDeps, type Deps } from '#packages/financial-eligibility-journey/src/api.js';
+import {
+    bankBalanceField as savingsBankBalanceField,
+    investmentBalanceField as savingsInvestmentBalanceField,
+    assetBalanceField as savingsAssetBalanceField,
+    creditBalanceField as savingsCreditBalanceField
+} from '#packages/financial-eligibility-journey/src/savingsPage/savingsBlock.js';
+import {
+    bankBalanceField as disputedBankBalanceField,
+    investmentBalanceField as disputedInvestmentBalanceField,
+    assetBalanceField as disputedAssetBalanceField,
+    creditBalanceField as disputedCreditBalanceField
+} from '#packages/financial-eligibility-journey/src/disputedSavingsPage/disputedSavingsBlock.js';
+import {
+    bankBalanceField as partnerBankBalanceField,
+    investmentBalanceField as partnerInvestmentBalanceField,
+    assetBalanceField as partnerAssetBalanceField,
+    creditBalanceField as partnerCreditBalanceField
+} from '#packages/financial-eligibility-journey/src/partnerSavingsPage/partnerSavingsBlock.js';
+import { propertyMarketValueFieldPrefix, propertyMortgageLeftFieldPrefix, propertyDisputedFieldPrefix } from "#packages/financial-eligibility-journey/src/propertiesPage/propertiesBlock.js";
 import { getOrMigrateCasePatternDrafts } from '#packages/financial-eligibility-journey/src/casePatternDrafts.js';
 import { type FinancialEligibilitySession } from '#packages/financial-eligibility-journey/src/context.type.js';
 import { under18Step, under18HasValuablesStep, under18RegularPaymentStep, partnerStep, over60Step, over60StepWithPartnerStep, disregardsStep } from "#packages/financial-eligibility-journey/src/index.js";
 import { type FinancialEligibilityData } from "#types/api-types.js";
 import { devLog, devError, devWarn, normaliseSelectedCheckbox, normaliseSelectedKeys, toYesNo, toBoolean, toNumber } from '#src/scripts/helpers/index.js';
+
+const MONETARY_FIELDS = new Set([
+    savingsBankBalanceField.code,
+    savingsInvestmentBalanceField.code,
+    savingsAssetBalanceField.code,
+    savingsCreditBalanceField.code,
+    disputedBankBalanceField.code,
+    disputedInvestmentBalanceField.code,
+    disputedAssetBalanceField.code,
+    disputedCreditBalanceField.code,
+    partnerBankBalanceField.code,
+    partnerInvestmentBalanceField.code,
+    partnerAssetBalanceField.code,
+    partnerCreditBalanceField.code
+]);
+
+const MONETARY_FIELDS_PREFIXES = new Set([
+    propertyMarketValueFieldPrefix,
+    propertyMortgageLeftFieldPrefix,
+    propertyDisputedFieldPrefix
+]);
 
 /**
  * Utility function to map step codes to API field names for financial eligibility data
@@ -511,7 +551,9 @@ export class FinancialEligibilityEffectsWithDepsImpl implements FinancialEligibi
         }
 
         for (const key of answerKeys) {
-            const value = requestPostData[key];
+            const valueIsMonetaryField = MONETARY_FIELDS.has(key) || Array.from(MONETARY_FIELDS_PREFIXES).some(prefix => key.startsWith(prefix));
+            const value = valueIsMonetaryField ? parseFloat(requestPostData[key] as string).toFixed(2) : requestPostData[key];
+
             if (value !== undefined && value !== null && value !== '') {
                 // Normalise the value for disregards step, to handle when only one disregard is selected
                 const normalisedValue = key === disregardsStep.code ? normaliseSelectedCheckbox(value) : value;
