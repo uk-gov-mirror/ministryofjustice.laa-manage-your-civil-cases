@@ -895,19 +895,21 @@ export function formatFinancialData(value: unknown): string {
  * @param {number} value The numeric value to format as GBP currency.
  * @returns {string} A formatted currency string with a £ sign.
  */
-export const formatCurrency = (value: number): string => {
-  if (Number.isInteger(value)) {
+export const formatCurrency = (value: number | string): string => {
+  const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+
+  if (Number.isInteger(numericValue)) {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP',
       trailingZeroDisplay: 'stripIfInteger',
-    }).format(value);
+    }).format(numericValue);
   } else {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(value);
+    }).format(numericValue);
   }
 }
