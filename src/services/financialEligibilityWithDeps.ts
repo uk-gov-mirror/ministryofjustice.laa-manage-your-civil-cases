@@ -132,14 +132,33 @@ function normalisePropertyCollectionForForge(value: unknown): Record<string, unk
     return value.map(item => {
         const property = item as Record<string, unknown>;
         return {
-            'value': property.value,
-            'mortgage-left': property['mortgage-left'] ?? property.mortgageLeft,
+            'value': property['value'] ?? normaliseMonetaryFieldValue(property.value),
+            'mortgage-left': property['mortgage-left'] ?? normaliseMonetaryFieldValue(property.mortgageLeft),
             'share': property.share,
             'disputed': toYesNo(property.disputed),
             'main': toYesNo(property.main),
         };
     });
 }
+
+
+/**
+ * Normalises a monetary field value to a string with two decimal places, or returns undefined if the value is not a valid number
+ * @param {unknown} value - The value to normalise
+ * @returns {string | undefined} - The normalised monetary value or undefined
+ */
+function normaliseMonetaryFieldValue(value: unknown): string | undefined {
+    if (value === undefined || value === null) {
+        return undefined;
+    }
+
+    const numberValue = typeof value === 'number' ? value : parseFloat(value as string);
+    if (isNaN(numberValue)) {
+        return undefined;
+    }
+
+    return numberValue.toFixed(2);
+}  
 
 
 /**
@@ -215,18 +234,18 @@ function mapApiValueToForgeValue(apiValue: unknown, stepCode: string): unknown {
         'pension-credit': apiValue ? 'yes' : 'no',
         'employment-support': apiValue ? 'yes' : 'no',
         'propertySet': normalisePropertyCollectionForForge(apiValue),
-        'bank-balance': apiValue,
-        'investment-balance': apiValue,
-        'asset-balance': apiValue,
-        'credit-balance': apiValue,
-        'bank-balance-partner': apiValue,
-        'investment-balance-partner': apiValue,
-        'asset-balance-partner': apiValue,
-        'credit-balance-partner': apiValue,
-        'bank-balance-disputed': apiValue,
-        'investment-balance-disputed': apiValue,
-        'asset-balance-disputed': apiValue,
-        'credit-balance-disputed': apiValue,
+        'bank-balance': normaliseMonetaryFieldValue(apiValue),
+        'investment-balance': normaliseMonetaryFieldValue(apiValue),
+        'asset-balance': normaliseMonetaryFieldValue(apiValue),
+        'credit-balance': normaliseMonetaryFieldValue(apiValue),
+        'bank-balance-partner': normaliseMonetaryFieldValue(apiValue),
+        'investment-balance-partner': normaliseMonetaryFieldValue(apiValue),
+        'asset-balance-partner': normaliseMonetaryFieldValue(apiValue),
+        'credit-balance-partner': normaliseMonetaryFieldValue(apiValue),
+        'bank-balance-disputed': normaliseMonetaryFieldValue(apiValue),
+        'investment-balance-disputed': normaliseMonetaryFieldValue(apiValue),
+        'asset-balance-disputed': normaliseMonetaryFieldValue(apiValue),
+        'credit-balance-disputed': normaliseMonetaryFieldValue(apiValue),
         [disregardsStep.code]: normaliseSelectedKeys(apiValue).length > 0 ? normaliseSelectedKeys(apiValue) : ['none'],
     }[stepCode];
 }
