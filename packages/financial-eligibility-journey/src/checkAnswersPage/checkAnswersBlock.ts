@@ -3,7 +3,7 @@ import { Answer, Condition, Conditional, Data, Format, Item, Iterator, Literal, 
 import { CollectionBlock } from '@ministryofjustice/hmpps-forge/core/components'
 import { GovUKHeading, GovUKSummaryList, GovUKUtilityClasses } from '@ministryofjustice/hmpps-forge/govuk-components'
 import { disregardsLookupItems } from '../disregardsPage/disregardsBlock.js'
-import { formatCurrency } from '#src/scripts/helpers/dataTransformers.js'
+import { Transformers } from '../formatters.js'
 
 const under18Passported = and(
   Answer('under-18').match(Condition.Equals('yes')),
@@ -128,15 +128,6 @@ export const financesHeading = GovUKHeading({
   text: 'Finances',
   size: 'm',
 })
-
-export const transformers = new TransformerRegistry()
-
-export const Transformers = {
-  Currency: transformers.register('Currency', {
-    factory: () => (value: number) => formatCurrency(value),
-  })
-}
-
 
 export const propertiesSummaryList = CollectionBlock({
   collection: Data('propertySet').each(
