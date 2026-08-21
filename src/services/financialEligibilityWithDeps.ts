@@ -10,7 +10,7 @@ import {
     bankBalanceField as disputedBankBalanceField,
     investmentBalanceField as disputedInvestmentBalanceField,
     assetBalanceField as disputedAssetBalanceField,
-    creditBalanceField as disputedCreditBalanceField
+    creditBalanceField as disputedCreditBalanceField,
 } from '#packages/financial-eligibility-journey/src/disputedSavingsPage/disputedSavingsBlock.js';
 import {
     bankBalanceField as partnerBankBalanceField,
@@ -24,6 +24,14 @@ import { type FinancialEligibilitySession } from '#packages/financial-eligibilit
 import { under18Step, under18HasValuablesStep, under18RegularPaymentStep, partnerStep, over60Step, over60StepWithPartnerStep, disregardsStep } from "#packages/financial-eligibility-journey/src/index.js";
 import { type FinancialEligibilityData } from "#types/api-types.js";
 import { devLog, devError, devWarn, normaliseSelectedCheckbox, normaliseSelectedKeys, toYesNo, toBoolean, toNumber } from '#src/scripts/helpers/index.js';
+import { under18RegularPaymentField } from "#packages/financial-eligibility-journey/src/under18RegularPaymentPage/under18RegularPaymentBlock.js";
+import { under18Field } from "#packages/financial-eligibility-journey/src/under18Page/under18Block.js";
+import { under18HasValuablesField } from "#packages/financial-eligibility-journey/src/under18HasValuablesPage/under18HasValuablesBlock.js";
+import { over60Field } from "#packages/financial-eligibility-journey/src/over60Page/over60Block.js";
+import { over60WithPartnerField } from "#packages/financial-eligibility-journey/src/over60PWithPartnerPage/over60WithPartnerBlock.js";
+import { incomeSupportField, universalCreditField, incomeBasedJSAField, pensionCreditField, employmentSupportField } from "#packages/financial-eligibility-journey/src/benefitsPage/benefitsBlock.js";
+import { partnerField } from "#packages/financial-eligibility-journey/src/partnerPage/partnerBlock.js";
+import { disregardsField } from "#packages/financial-eligibility-journey/src/disregardsPage/disregardsBlock.js";
 
 const MONETARY_FIELDS = new Set([
     savingsBankBalanceField.code,
@@ -47,16 +55,16 @@ const MONETARY_FIELDS_PREFIXES = new Set([
 ]);
 
 /**
- * Utility function to map step codes to API field names for financial eligibility data
- * @param {string} stepCode - The code of the step to map
+ * Utility function to map answer codes to API field names for financial eligibility data
+ * @param {string} answerCode - The code of the answer to map
  * @returns {string | null} The corresponding API field name, or null if no mapping exists
  */
-function mapStepCodeToApiField(stepCode: string): string | null {
+function mapAnswerCodeToApiField(answerCode: string): string | null {
     const mapping: Record<string, string> = {
-        [under18Step.code]: 'is_you_under_18',
-        [under18RegularPaymentStep.code]: 'under_18_receive_regular_payment',
-        [under18HasValuablesStep.code]: 'under_18_has_valuables',
-        [partnerStep.code]: 'has_partner',
+        [under18Field.code as string]: 'is_you_under_18',
+        [under18RegularPaymentField.code as string]: 'under_18_receive_regular_payment',
+        [under18HasValuablesField.code as string]: 'under_18_has_valuables',
+        [partnerField.code as string]: 'has_partner',
         [over60Step.code]: 'is_you_or_your_partner_over_60',
         [over60StepWithPartnerStep.code]: 'is_you_or_your_partner_over_60',
         'universal-credit': 'universal_credit',
@@ -80,15 +88,15 @@ function mapStepCodeToApiField(stepCode: string): string | null {
         [disregardsStep.code]: 'disregards',
     };
 
-    return mapping[stepCode] || null;
+    return mapping[answerCode] || null;
 }
 
 /**
- * Utility function to map financial eligibility API data to step codes for use in the Forge journey
+ * Utility function to map financial eligibility API data to answer codes for use in the Forge journey
  * @param {FinancialEligibilityData} financialEligibilityData - The financial eligibility data from the API
  * @returns {Record<string, unknown>} A record mapping step codes to their corresponding values
  */
-function mapFinancialEligibilityApiDataToStepCodes(financialEligibilityData: FinancialEligibilityData): Record<string, unknown> {
+function mapFinancialEligibilityApiDataToAnswerCodes(financialEligibilityData: FinancialEligibilityData): Record<string, unknown> {
     return {
         category: financialEligibilityData.category,
         [under18Step.code]: financialEligibilityData.isUnder17,
@@ -222,31 +230,31 @@ function getPropertyCollectionFromAnswers(answers: Record<string, unknown>): Rec
 function mapApiValueToForgeValue(apiValue: unknown, stepCode: string): unknown {
     return {
         category: String(apiValue ?? '').toLowerCase(),
-        [under18Step.code]: apiValue ? 'yes' : 'no',
-        [under18RegularPaymentStep.code]: apiValue ? 'yes' : 'no',
-        [under18HasValuablesStep.code]: apiValue ? 'yes' : 'no',
-        [partnerStep.code]: apiValue ? 'yes' : 'no',
-        [over60Step.code]: apiValue ? 'yes' : 'no',
-        [over60StepWithPartnerStep.code]: apiValue ? 'yes' : 'no',
-        'universal-credit': apiValue ? 'yes' : 'no',
-        'income-support': apiValue ? 'yes' : 'no',
-        'income-based-jsa': apiValue ? 'yes' : 'no',
-        'pension-credit': apiValue ? 'yes' : 'no',
-        'employment-support': apiValue ? 'yes' : 'no',
+        [under18Field.code as string]: apiValue ? 'yes' : 'no',
+        [under18RegularPaymentField.code as string]: apiValue ? 'yes' : 'no',
+        [under18HasValuablesField.code as string]: apiValue ? 'yes' : 'no',
+        [partnerField.code as string]: apiValue ? 'yes' : 'no',
+        [over60Field.code as string]: apiValue ? 'yes' : 'no',
+        [over60WithPartnerField.code as string]: apiValue ? 'yes' : 'no',
+        [universalCreditField.code as string]: apiValue ? 'yes' : 'no',
+        [incomeSupportField.code as string]: apiValue ? 'yes' : 'no',
+        [incomeBasedJSAField.code as string]: apiValue ? 'yes' : 'no',
+        [pensionCreditField.code as string]: apiValue ? 'yes' : 'no',
+        [employmentSupportField.code as string]: apiValue ? 'yes' : 'no',
         'propertySet': normalisePropertyCollectionForForge(apiValue),
-        'bank-balance': normaliseMonetaryFieldValue(apiValue),
-        'investment-balance': normaliseMonetaryFieldValue(apiValue),
-        'asset-balance': normaliseMonetaryFieldValue(apiValue),
-        'credit-balance': normaliseMonetaryFieldValue(apiValue),
-        'bank-balance-partner': normaliseMonetaryFieldValue(apiValue),
-        'investment-balance-partner': normaliseMonetaryFieldValue(apiValue),
-        'asset-balance-partner': normaliseMonetaryFieldValue(apiValue),
-        'credit-balance-partner': normaliseMonetaryFieldValue(apiValue),
-        'bank-balance-disputed': normaliseMonetaryFieldValue(apiValue),
-        'investment-balance-disputed': normaliseMonetaryFieldValue(apiValue),
-        'asset-balance-disputed': normaliseMonetaryFieldValue(apiValue),
-        'credit-balance-disputed': normaliseMonetaryFieldValue(apiValue),
-        [disregardsStep.code]: normaliseSelectedKeys(apiValue).length > 0 ? normaliseSelectedKeys(apiValue) : ['none'],
+        [savingsBankBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [savingsInvestmentBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [savingsAssetBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [savingsCreditBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [partnerBankBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [partnerInvestmentBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [partnerAssetBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [partnerCreditBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [disputedBankBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [disputedInvestmentBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [disputedAssetBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [disputedCreditBalanceField.code as string]: normaliseMonetaryFieldValue(apiValue),
+        [disregardsField.code as string]: normaliseSelectedKeys(apiValue).length > 0 ? normaliseSelectedKeys(apiValue) : ['none'],
     }[stepCode];
 }
 
@@ -283,8 +291,8 @@ export function mapAnswersToApiPayload(answers: Record<string, unknown>): Record
     const partnerSavingsFields = ['bank-balance-partner', 'investment-balance-partner', 'asset-balance-partner', 'credit-balance-partner'];
     const disputedSavingsFields = ['bank-balance-disputed', 'investment-balance-disputed', 'asset-balance-disputed', 'credit-balance-disputed'];
 
-    for (const [stepCode, answer] of Object.entries(answers)) {
-        const apiField = mapStepCodeToApiField(stepCode);
+    for (const [answerCode, answer] of Object.entries(answers)) {
+        const apiField = mapAnswerCodeToApiField(answerCode);
         if (apiField) {
             let value = answer;
 
@@ -298,13 +306,13 @@ export function mapAnswersToApiPayload(answers: Record<string, unknown>): Record
 
             if (benefitFields.includes(apiField)) {
                 specificBenefits[apiField] = value;
-            } else if (partnerSavingsFields.includes(stepCode)) {
+            } else if (partnerSavingsFields.includes(answerCode)) {
                 partnerSavings[apiField] = Math.round(toNumber(value) * 100);
-            } else if (disputedSavingsFields.includes(stepCode)) {
+            } else if (disputedSavingsFields.includes(answerCode)) {
                 disputedSavings[apiField] = Math.round(toNumber(value) * 100);
             } else if (savingsFields.includes(apiField)) {
                 savings[apiField] = Math.round(toNumber(value) * 100);
-            } else if (stepCode === disregardsStep.code) {
+            } else if (answerCode === disregardsStep.code) {
                 normaliseSelectedCheckbox(value).forEach(disregard => {
                     disregards[disregard] = true;
                 });
@@ -424,18 +432,18 @@ export class FinancialEligibilityEffectsWithDepsImpl implements FinancialEligibi
             session.financialEligibilityDrafts[caseReference] = {};
         }
 
-        const mappedAnswers = mapFinancialEligibilityApiDataToStepCodes(financialEligibilityResponse.data);
-        for (const [stepCode, apiValue] of Object.entries(mappedAnswers)) {
+        const mappedAnswers = mapFinancialEligibilityApiDataToAnswerCodes(financialEligibilityResponse.data);
+        for (const [answerCode, apiValue] of Object.entries(mappedAnswers)) {
             const caseFEDraft = session.financialEligibilityDrafts[caseReference];
-            if (stepCode in caseFEDraft) {
+            if (answerCode in caseFEDraft) {
 
                 // If the step code already exists in the session draft, we use that value instead of the API value to ensure that any user-entered data takes precedence over the API data
-                const draftValue = stepCode === disregardsStep.code ? normaliseSelectedCheckbox(caseFEDraft[stepCode]) : caseFEDraft[stepCode];
-                caseFEDraft[stepCode] = draftValue;
-                context.setAnswer(stepCode, draftValue);
+                const draftValue = answerCode === disregardsStep.code ? normaliseSelectedCheckbox(caseFEDraft[answerCode]) : caseFEDraft[answerCode];
+                caseFEDraft[answerCode] = draftValue;
+                context.setAnswer(answerCode, draftValue);
             } else {
-                const answerValue = mapApiValueToForgeValue(apiValue, stepCode);
-                context.setAnswer(stepCode, answerValue);
+                const answerValue = mapApiValueToForgeValue(apiValue, answerCode);
+                context.setAnswer(answerCode, answerValue);
             }
         }
 
